@@ -1,11 +1,14 @@
 FROM golang:1.10
 
-RUN go get github.com/cosmos/gaia; \
-    cd $GOPATH/src/github.com/cosmos/gaia; \
-    make all; \
-    git clone https://github.com/tendermint/testnets $HOME/testnets;
+ARG git_checkout_arg
 
-ENV GAIANET $HOME/testnets/gaia-3002/gaia
+RUN go get github.com/cosmos/cosmos-sdk; \
+    cd $GOPATH/src/github.com/cosmos/cosmos-sdk; \
+    git checkout $git_checkout_arg; \
+    make; \
+    git checkout master;
 
-EXPOSE 46656
-EXPOSE 46657
+COPY src/run-gaia.sh /usr/local/bin
+
+EXPOSE 26656
+EXPOSE 26657
