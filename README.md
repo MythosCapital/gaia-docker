@@ -3,7 +3,9 @@ Dockerfile for gaia
 
 # Prereqs
 Install Docker
-For Ubuntu distros: ./install-docker-ubuntu.sh
+
+For Ubuntu distros: `./install-docker-ubuntu.sh`
+
 For other distros see [Docker docs](https://docs.docker.com/install/)
 
 # Build docker image
