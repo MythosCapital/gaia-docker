@@ -1,20 +1,19 @@
 #!/bin/bash -e
 
-set -x
+### Work in progress! ###
+### Do not attempt to use this script, it probably won't work
+###
 
 usage() {
   echo "Usage:"
-  echo "  launch.sh --help"
-  echo "  launch.sh [--gaiad_init][--image=<docker_image>]"
-  echo "  launch.sh [--image=<docker_image>][--host_config_dir=<host_config_dir][--genesis=<genesis file>][--priv_validator=<priv_validator.json][--moniker=<moniker>][--seeds=<seeds>][--persistent_peers=<persistent_peer>][--private_peer_ids=<private_peer_ids>][--config_toml=<config.toml>]"
+  echo "  launch.sh --help|-h"
+  echo "  launch.sh [--gaiad_init][--image=<docker_image>][--moniker=<moniker>]"
+  echo "  launch.sh [--image=<docker_image>][--host_config_dir=<host_config_dir][--genesis=<genesis file>][--priv_validator=<priv_validator.json][--seeds=<seeds>][--persistent_peers=<persistent_peer>][--private_peer_ids=<private_peer_ids>][--config_toml=<config.toml>]"
 }
 
-POSITIONAL=()
-while [[ $# -gt 0 ]]
+for i in "$@"
 do
-  key="$1"
-
-  case $key in
+  case $i in
     -h|--help)
       HELP="true"
       shift # past argument
@@ -23,58 +22,51 @@ do
       GAIAD_INIT="true"
       shift # past argument
       ;;
-    --image)
-      IMAGE="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --host_config_dir)
-      HOST_CONFIG_DIR="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --genesis)
-      GENESIS="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --config_toml)
-      CONFIG_TOML="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --priv_validator)
-      PRIV_VALIDATOR="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --moniker)
-      MONIKER="$2"
-      shift # past argument
-      shift # past value
-      ;;
-    --seeds)
-      SEEDS="$2"
+    --image=*)
+      IMAGE="${i#*=}"
       shift # past argument
       ;;
-    --persistent_peers)
-      PERSISTENT_PEERS="$2"
+    --host_config_dir=*)
+      HOST_CONFIG_DIR="${i#*=}"
       shift # past argument
       ;;
-    --private_peer_ids)
-      PRIVATE_PEER_IDS="$2"
+    --genesis=*)
+      GENESIS="${i#*=}"
+      shift # past argument
+      ;;
+    --config_toml=*)
+      CONFIG_TOML="${i#*=}"
+      shift # past argument
+      ;;
+    --priv_validator=*)
+      PRIV_VALIDATOR="${i#*=}"
+      shift # past argument
+      ;;
+    --moniker=*)
+      MONIKER="${i#*=}"
+      shift # past argument
+      ;;
+    --seeds=*)
+      SEEDS="${i#*=}"
+      shift # past argument
+      ;;
+    --persistent_peers=*)
+      PERSISTENT_PEERS="${i#*=}"
+      shift # past argument
+      ;;
+    --private_peer_ids=*)
+      PRIVATE_PEER_IDS="${i#*=}"
       shift # past argument
       ;;
     *)    # unknown option
-      POSITIONAL+=("$1") # save it in an array for later
-      shift # past argument
+      usage
+      exit 1
       ;;
   esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
 if [ -n "$HELP" ]; then
-  echo "us"
   usage
   exit 0
 fi
@@ -85,9 +77,10 @@ fi
 : ${IMAGE="gaia"}
 : ${PEERS=""}
 : ${GENESIS=""}
-: ${HOST_CONFIG_DIR="gaiad"}
+: ${HOST_CONFIG_DIR="/root/.gaiad"}
 : ${MONIKER="docker-default"}
 
+: ${DETACH="-d"}
 if [ -n "$GENESIS" ]; then
   GENESIS_VOLUME="-v $GENESIS:/tmp/genesis.json"
 fi
@@ -104,6 +97,7 @@ ENV_FLAGS=""
 
 if [ -n "$GAIAD_INIT" ]; then
   ENV_FLAGS="$ENV_FLAGS -e GAIAD_INIT=$GAIAD_INIT"
+  DETACH=""
 fi
 
 if [ -n "$SEEDS" ]; then
@@ -118,8 +112,5 @@ if [ -n "$PRIVATE_PEER_IDS" ]; then
   ENV_FLAGS="$ENV_FLAGS -e PRIVATE_PEER_IDS=$PRIVATE_PEER_IDS"
 fi
 
-
-echo " docker run --name gaiad $GENESIS_VOLUME $CONFIG_TOML_VOLUME $PRIV_VOLUME -v $HOST_CONFIG_DIR:/etc/gaiad -e MONIKER=$MONIKER $ENV_FLAGS --rm -it $IMAGE run-gaia.sh"
-
-docker run --name gaiad $GENESIS_VOLUME $CONFIG_TOML_VOLUME $PRIV_VOLUME -v $HOST_CONFIG_DIR:/etc/gaiad -e MONIKER=$MONIKER $ENV_FLAGS --rm -it $IMAGE run-gaia.sh
+echo "docker run $DETACH -p 26656-26657:26656-26657/tcp --name gaiad $GENESIS_VOLUME $CONFIG_TOML_VOLUME $PRIV_VOLUME -v $HOST_CONFIG_DIR:/data/gaiad -e MONIKER=$MONIKER $ENV_FLAGS --rm -it $IMAGE run-gaia.sh"
 

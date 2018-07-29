@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 # install docker
+apt-get update
 apt-get -y remove docker docker-engine docker.io
 apt-get -y install \
     apt-transport-https \
