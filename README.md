@@ -1,6 +1,8 @@
 # gaia-docker
 Dockerfile for gaia
 
+[Cosmos forum discussion](https://forum.cosmos.network/t/gaia-dockerfile/631)
+
 ### Prereqs
 Install Docker
 
